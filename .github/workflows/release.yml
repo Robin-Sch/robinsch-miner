@@ -25,7 +25,7 @@ jobs:
       - name: Pull source
         uses: actions/checkout@master
         with:
-          ref: master
+          ref: main
       - name: Setup node
         uses: actions/setup-node@master
         with:
