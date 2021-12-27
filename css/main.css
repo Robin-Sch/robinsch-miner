@@ -1,0 +1,9 @@
+.container-main {
+    display: flex;  
+    flex-direction: row;
+}
+
+.container-left, .container-right {
+    border: 1px black; 
+    width: 100%;
+}
