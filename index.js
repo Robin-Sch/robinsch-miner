@@ -142,9 +142,9 @@ if (!gotTheLock && app.isPackaged) {
 		if(type == 'cpu') cpuProc = currentProc;
 		if(type == 'gpu') gpuProc = currentProc;
 
-		// currentProc.stdout.on('data', (data) => {
-		// 	return log.info(data.toString())
-		// });
+		currentProc.stdout.on('data', (data) => {
+			return log.info(data.toString())
+		});
 		currentProc.stderr.on('data', (data) => {
 			return log.info(data.toString());
 		});

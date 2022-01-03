@@ -49,6 +49,7 @@ const getPrevious = setInterval(() => {
 const startMiner = (type, reload) => {
 	cpuMinerButton.onclick = () => { startMiner('cpu', false) };
 	const username = getUsername();
+	if (!username || typeof username !== 'string') return;
 
 	const json = { username, type, reload }
 	if (type == 'cpu') json.cpuUse = cpuUseSlider.value;
