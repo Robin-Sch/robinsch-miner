@@ -1,6 +1,6 @@
 {
   "name": "robinsch-miner",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "My xmrig GUI miner",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,10 @@
         "AppImage",
         "deb"
       ]
-    }
+    },
+    "extraResources": [
+      "xmrig"
+    ]
   },
   "author": {
     "name": "Robin Sch",
