@@ -4,6 +4,8 @@ const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('child_process');
 const { writeFileSync, existsSync, mkdirSync } = require('fs');
+const { cpus } = require('os');
+const fetch = require('node-fetch');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 const { info } = require('electron-log');
@@ -17,6 +19,7 @@ let cpuProc;
 let gpuProc;
 const platform = process.platform;
 const gotTheLock = app.requestSingleInstanceLock();
+const cpuCount = cpus().length;
 
 if (!gotTheLock && app.isPackaged) {
 	app.quit();
@@ -54,34 +57,53 @@ if (!gotTheLock && app.isPackaged) {
 
 		if(app.isPackaged) {
 			log.info('starting update check');
-			autoUpdater.checkForUpdates();
+			return autoUpdater.checkForUpdates();
 		} else {
-			currentWindow.webContents.openDevTools();
+			return currentWindow.webContents.openDevTools();
 		}
-
 	});
-
 
 	// Menu options bar
 	const MenuTemplate = [];
 
 	ipcMain.on('focus', () => {
 		if (currentWindow.isMinimized()) currentWindow.restore();
-		currentWindow.focus();
+		return currentWindow.focus();
 	});
 
 	ipcMain.on('getPath', (event, data) => {
 		const userDataPath = electron.app.getPath(data);
-		currentWindow.webContents.send('getPath', userDataPath);
+		return currentWindow.webContents.send('getPath', userDataPath);
 	});
 
 	ipcMain.on('log', (event, data) => {
-		log.info(data);
+		return log.info(data);
 	});
 
-	ipcMain.on('startMiner', (event, { username, type }) => {
-		if(type == 'cpu' && !!cpuProc) return cpuProc.kill();
-		if(type == 'gpu' && !!gpuProc) return gpuProc.kill();
+	ipcMain.on('getStats', async (event, data) => {
+		const username = data.username;
+
+		const res = await fetch(`https://api.moneroocean.stream/miner/89DntRp9S5qAvNhUqY1rWwXy3jWHKDGKLgexsGu9mRrYZ7MvA6pkBEGbfji8TFPMUsfUNaz89TmiyUZZua5S6qszUFNnFHq/stats/${username}`);
+		const json = await res.json();
+		
+		if (json.lts == null) return;
+
+		return currentWindow.webContents.send('stats', json);
+	});
+
+	ipcMain.on('startMiner', async (event, { username, type, cpuUse, reload }) => {
+		if(type == 'cpu' && !!cpuProc) {
+			cpuProc.kill();
+			cpuProc = null;
+
+			if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
+		}
+		if(type == 'gpu' && !!gpuProc) {
+			gpuProc.kill();
+			gpuProc = null;
+			
+			if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
+		}
 
 		if (!['cpu','gpu'].includes(type)) return;
 
@@ -89,33 +111,52 @@ if (!gotTheLock && app.isPackaged) {
 		const templatePath = join(__dirname, `xmrig/${type}.json`);
 		const configPath = join(userDataPath, `xmrig/${type}.json`);
 
+		const xmrigFolderPath = join(userDataPath, 'xmrig');
+		if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
+
 		const config = existsSync(configPath) ? require(configPath) : require(templatePath);
-		config.pools[0].pass = username;
+		if (type == 'cpu') {
+			config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
 
-		if (!existsSync(join(userDataPath, 'xmrig'))) mkdirSync(join(userDataPath, 'xmrig'));
-		writeFileSync(configPath, JSON.stringify(config));
+			for(const key in config.cpu) {
+				const value = config.cpu[key];
+				if(typeof value == 'object') {
+					config.cpu[key] = {
+						"threads": cpuUse
+					}
+				}
+			}
+		}
 
-		log.info(`starting the ${type} miner`)
-		const currentProc = spawn(`./xmrig/${platform}/xmrig`, ['-c', configPath]);
+		config.pools[0].pass = `${username}-${type}`;
+		await writeFileSync(configPath, JSON.stringify(config));
+
+		if (!reload) log.info(`starting the ${type} miner`);
+		else log.info(`updating the ${type} miner`);
+
+		if (!['win32', 'darwin', 'linux'].includes(process.platform)) return log.error(`Unsupported platform (${process.platform})!`)
+
+		const extra = process.platform == 'win32' ? '.exe' : '';
+		const currentProc = spawn(`./xmrig/${platform}/xmrig${extra}`, ['-c', configPath]);
 
 		if(type == 'cpu') cpuProc = currentProc;
 		if(type == 'gpu') gpuProc = currentProc;
 
-		currentWindow.webContents.send('miner-status', { type, status: true });
-
-		currentProc.stdout.on('data', function(data) {
-			log.info(data.toString())
+		// currentProc.stdout.on('data', (data) => {
+		// 	return log.info(data.toString())
+		// });
+		currentProc.stderr.on('data', (data) => {
+			return log.info(data.toString());
 		});
-		currentProc.stderr.on('data', function(data) {
-			log.info(data.toString())
-		});
-		currentProc.on('error', function(error) {
-			log.error(error);
+		currentProc.on('error', (error) => {
+			return log.error(error);
 		})
-		currentProc.on('close', function(code, signal) {
-			currentWindow.webContents.send('miner-status', { type, status: false });
-			log.info(`stopped the ${type} miner`);
-		});
+		// currentProc.on('close', (code, signal) => {
+		// 	currentWindow.webContents.send('miner-status', { type, status: false });
+		// 	return log.info(`stopped the ${type} miner`);
+		// });
+
+		return currentWindow.webContents.send('miner-status', { type, status: true, reload });
 	})
 
 	// If mac, add empty object to menu

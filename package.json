@@ -1,6 +1,6 @@
 {
   "name": "robinsch-miner",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "My xmrig GUI miner",
   "main": "index.js",
   "scripts": {
@@ -40,13 +40,15 @@
   "license": "GPL-3.0",
   "dependencies": {
     "electron-log": "^4.4.3",
-    "electron-packager": "^15.4.0",
     "electron-updater": "^4.6.1",
     "fs": "^0.0.1-security",
+    "node-fetch": "^2.6.6",
+    "os": "^0.1.2",
     "path": "^0.12.7"
   },
   "devDependencies": {
     "electron": "^16.0.5",
-    "electron-builder": "^22.14.5"
+    "electron-builder": "^22.14.5",
+    "electron-packager": "^15.4.0"
   }
 }

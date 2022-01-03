@@ -4,7 +4,6 @@
 <head>
     <title>RobinSch Miner</title>
     <link rel="stylesheet" type="text/css" href="../css/main.css" />
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="../js/update.js"></script>
 </head>
 
@@ -12,11 +11,15 @@
     <input type="text" placeholder="username" id="username" style="width: 100%"/>
     <div class="container-main">
         <div class="container-left">
-            <button id="start-miner-cpu" onclick="startMiner('cpu')">Start the cpu miner</button>
+            <button id="start-miner-cpu" onclick="startMiner('cpu', false)">Start the cpu miner</button><br>
+            <input type="range" min="1" id="cpuUse" oninput="document.getElementById('cpuUseRangeLabel').innerHTML = `Amount of threads: ${this.value}`;" step="1">
+            <label id="cpuUseRangeLabel"></label>
+            <p id="stats-cpu"></p>
             <p id="log-cpu"></p>
         </div>
         <div class="container-right">
-            <button id="start-miner-gpu" onclick="startMiner('gpu')">Start the gpu miner (currently only supporting nvidia gpu's)</button>
+            <button id="start-miner-gpu" onclick="startMiner('gpu', false)">Start the gpu miner (currently only supporting nvidia gpu's)</button>
+            <p id="stats-gpu"></p>
             <p id="log-gpu"></p>
         </div>
     </div>
