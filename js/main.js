@@ -16,6 +16,7 @@ const userNameInput = document.getElementById('username');
 const cpuMinerButton = document.getElementById('start-miner-cpu');
 const cpuUseSlider = document.getElementById('cpuUse');
 const cpuUseSliderLabel = document.getElementById('cpuUseRangeLabel');
+const log = document.getElementById('log');
 
 cpuUseSlider.onchange = () => {
 	if (mining.cpu) {
@@ -30,8 +31,6 @@ const getPrevious = setInterval(() => {
 		oldUsername = savedata.get('username');
 		if (oldUsername) {
 			userNameInput.value = oldUsername;
-			ipcRenderer.send('getStats', { username: `${oldUsername}-cpu` });
-			ipcRenderer.send('getStats', { username: `${oldUsername}-gpu` });
 		}
 	}
 
@@ -60,7 +59,6 @@ const startMiner = (type, reload) => {
 
 ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 	const button = document.getElementById(`start-miner-${type}`);
-	const log = document.getElementById("log");
 
 	mining[type] = status;
 
@@ -77,11 +75,6 @@ ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 		button.innerHTML = `Start the ${type} miner`;
 		return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Stopped the miner</th></tr>`
 	}
-});
-
-ipcRenderer.on('stats', (event, stats) => {
-	const type = stats.identifer.split('-').pop();
-	return document.getElementById(`stats-${type}`).innerHTML = `Total shares: ${stats.validShares}`;
 });
 
 const getUsername = () => {

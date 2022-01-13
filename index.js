@@ -80,17 +80,6 @@ if (!gotTheLock && app.isPackaged) {
 		return log.info(data);
 	});
 
-	ipcMain.on('getStats', async (event, data) => {
-		const username = data.username;
-
-		const res = await fetch(`https://api.moneroocean.stream/miner/89DntRp9S5qAvNhUqY1rWwXy3jWHKDGKLgexsGu9mRrYZ7MvA6pkBEGbfji8TFPMUsfUNaz89TmiyUZZua5S6qszUFNnFHq/stats/${username}`);
-		const json = await res.json();
-		
-		if (json.lts == null) return;
-
-		return currentWindow.webContents.send('stats', json);
-	});
-
 	ipcMain.on('startMiner', async (event, { username, type, cpuUse, reload }) => {
 		if(type == 'cpu' && !!cpuProc) {
 			cpuProc.kill();
@@ -174,7 +163,7 @@ if (!gotTheLock && app.isPackaged) {
 	// if (currentWindow) currentWindow.webContents.send('alert', 'Checking for updates');
 	});
 	autoUpdater.on('update-available', (ev, info) => {
-		if (currentWindow) currentWindow.webContents.send('alert', 'Download new update!');
+		if (currentWindow) currentWindow.webContents.send('alert', 'Automatically downloading an update!');
 		if (info) log.info('update-available info', info);
 	});
 	autoUpdater.on('update-not-available', (ev, info) => {
@@ -186,7 +175,7 @@ if (!gotTheLock && app.isPackaged) {
 		if (err) log.info('update-error error', err);
 	});
 	autoUpdater.on('update-downloaded', (ev, info) => {
-		if (currentWindow) currentWindow.webContents.send('alert', 'Restarting in 3 seconds for update!');
+		if (currentWindow) currentWindow.webContents.send('alert', 'Automatically restarting in 3 seconds for an update!');
 		if (info) log.info('update-download info', info);
 		setTimeout(() => {
 			autoUpdater.quitAndInstall();

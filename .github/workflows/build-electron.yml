@@ -1,12 +1,14 @@
-name: CI-release
+name: build-electron
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      main
+  pull_request:
+    types: [labeled, opened, synchronize, reopened]
 
 jobs:
-  publish:
-    name: Publish for ${{ matrix.os }}
+  build:
+    name: Build for ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -37,19 +39,3 @@ jobs:
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/*${{ matrix.artifact_suffix }}
-          tag: ${{ github.ref }}
-          file_glob: true
-          overwrite: true
-      - name: Upload latest info to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: dist/latest*.yml
-          tag: ${{ github.ref }}
-          file_glob: true
-          overwrite: true

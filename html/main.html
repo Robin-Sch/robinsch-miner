@@ -21,11 +21,9 @@
                 <button type="button" class="btn btn-success btn-block" id="start-miner-cpu" onclick="startMiner('cpu', false)">Start the cpu miner</button><br>
                 <input type="range" min="1" id="cpuUse" oninput="document.getElementById('cpuUseRangeLabel').innerHTML = `Amount of threads: ${this.value}`;" step="1">
                 <label id="cpuUseRangeLabel"></label>
-                <p id="stats-cpu"></p>
             </div>
             <div class="col-xs-12 col-md-6">
                 <button disabled type="button" class="btn btn-success btn-block" id="start-miner-gpu" onclick="startMiner('gpu', false)">Start the gpu miner (nvidia only)</button>
-                <p id="stats-gpu"></p>
             </div>
         </div>
         <div class="row">
