@@ -37,102 +37,11 @@
         "argon2-impl": null,
         "astrobwt-max-size": 550,
         "astrobwt-avx2": false,
-        "argon2": [0, 1, 2, 8, 3, 4, 5, 11],
-        "astrobwt": [0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 5, 11],
-        "cn": [
-            [1, 0],
-            [1, 1],
-            [1, 3],
-            [1, 4]
-        ],
-        "cn-heavy": [
-            [1, 0],
-            [1, 3]
-        ],
-        "cn-lite": [
-            [1, 0],
-            [1, 1],
-            [1, 2],
-            [1, 8],
-            [1, 3],
-            [1, 4],
-            [1, 5],
-            [1, 11]
-        ],
-        "cn-pico": [
-            [2, 0],
-            [2, 6],
-            [2, 1],
-            [2, 7],
-            [2, 2],
-            [2, 8],
-            [2, 3],
-            [2, 9],
-            [2, 4],
-            [2, 10],
-            [2, 5],
-            [2, 11]
-        ],
-        "cn/2": [
-            [1, 0],
-            [1, 1],
-            [1, 3],
-            [1, 4]
-        ],
-        "cn/gpu": [
-            [1, 0],
-            [1, 6],
-            [1, 1],
-            [1, 7],
-            [1, 2],
-            [1, 8],
-            [1, 3],
-            [1, 9],
-            [1, 4],
-            [1, 10],
-            [1, 5],
-            [1, 11]
-        ],
-        "cn/upx2": [
-            [2, 0],
-            [2, 6],
-            [2, 1],
-            [2, 7],
-            [2, 2],
-            [2, 8],
-            [2, 3],
-            [2, 9],
-            [2, 4],
-            [2, 10],
-            [2, 5],
-            [2, 11]
-        ],
-        "ghostrider": [
-            [8, 0],
-            [8, 1],
-            [8, 3],
-            [8, 4]
-        ],
-        "panthera": [0, 1, 2, 3, 4, 5],
-        "rx": [0, 1, 3, 4],
-        "rx/arq": [0, 6, 1, 7, 2, 8, 3, 9, 4, 10, 5, 11],
-        "rx/wow": [0, 1, 2, 8, 3, 4, 5, 11],
-        "cn-lite/0": false,
         "cn/0": false,
-        "rx/keva": "rx/wow"
+        "cn-lite/0": false
     },
-    "opencl": {
-        "enabled": false,
-        "cache": true,
-        "loader": null,
-        "platform": "AMD",
-        "adl": true
-    },
-    "cuda": {
-        "enabled": false,
-        "loader": null,
-        "nvml": true
-    },
+    "opencl": false,
+    "cuda": false,
     "log-file": null,
     "donate-level": 0,
     "donate-over-proxy": 0,
@@ -183,4 +92,4 @@
     "algo-perf": {},
     "pause-on-battery": false,
     "pause-on-active": false
-}
+} 

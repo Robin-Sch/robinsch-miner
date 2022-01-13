@@ -10,7 +10,7 @@ const currentData = new SaveData({
 
 let oldUsername = undefined;
 let oldThreads = undefined;
-let mining = false;
+let mining = { cpu: false, gpu: false };
 
 const userNameInput = document.getElementById('username');
 const cpuMinerButton = document.getElementById('start-miner-cpu');
@@ -18,8 +18,9 @@ const cpuUseSlider = document.getElementById('cpuUse');
 const cpuUseSliderLabel = document.getElementById('cpuUseRangeLabel');
 
 cpuUseSlider.onchange = () => {
-	if (mining) {
+	if (mining.cpu) {
 		cpuMinerButton.onclick = () => { startMiner('cpu', true) };
+		cpuMinerButton.className = "btn btn-warning btn-block";
 		cpuMinerButton.innerHTML = `Update the cpu miner`;
 	}
 }
@@ -59,20 +60,22 @@ const startMiner = (type, reload) => {
 
 ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 	const button = document.getElementById(`start-miner-${type}`);
-	const log = document.getElementById(`log-${type}`);
+	const log = document.getElementById("log");
 
-	mining = status;
+	mining[type] = status;
 
 	if(status) {
+		button.className = "btn btn-danger btn-block"
 		button.innerHTML = `Stop the ${type} miner`;
 		if(reload) {
-			return log.innerHTML += "Updated the miner!<br>";
+			return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Updated the miner</th></tr>`;
 		} else {
-			return log.innerHTML += "Started the miner!<br>";
+			return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Started the miner</th></tr>`
 		}
 	} else {
+		button.className = "btn btn-success btn-block"
 		button.innerHTML = `Start the ${type} miner`;
-		return log.innerHTML += "Stopped the miner!<br>";
+		return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Stopped the miner</th></tr>`
 	}
 });
 
@@ -94,4 +97,4 @@ const setThreads = (threads) => {
 }
 
 cpuUseSlider.max = window.navigator.hardwareConcurrency;
-setThreads(window.navigator.hardwareConcurrency / 2);
+setThreads(window.navigator.hardwareConcurrency);

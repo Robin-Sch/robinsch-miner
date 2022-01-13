@@ -56,8 +56,8 @@ if (!gotTheLock && app.isPackaged) {
 		Menu.setApplicationMenu(currentMenu);
 
 		if(app.isPackaged) {
-			// log.info('starting update check');
-			// return autoUpdater.checkForUpdates();
+			log.info('starting update check');
+			return autoUpdater.checkForUpdates();
 		} else {
 			return currentWindow.webContents.openDevTools();
 		}
@@ -138,10 +138,9 @@ if (!gotTheLock && app.isPackaged) {
 
 		const extra = process.platform == 'win32' ? '.exe' : '';
 		const xmrigPath = join(app.getAppPath(), app.isPackaged ? '..' : '', `xmrig/${platform}/xmrig${extra}`);
-		console.log(xmrigPath);
+		log.info(xmrigPath)
 
 		const currentProc = spawn(xmrigPath, ['-c', configPath]);
-		// `./xmrig/${platform}/xmrig${extra}`
 
 		if(type == 'cpu') cpuProc = currentProc;
 		if(type == 'gpu') gpuProc = currentProc;
@@ -171,26 +170,26 @@ if (!gotTheLock && app.isPackaged) {
 	// -------------------------------------------------------------------
 	// Auto updates
 	// -------------------------------------------------------------------
-	// autoUpdater.on('checking-for-update', () => {
-	// // if (currentWindow) currentWindow.webContents.send('alert', 'Checking for updates');
-	// });
-	// autoUpdater.on('update-available', (ev, info) => {
-	// 	if (currentWindow) currentWindow.webContents.send('alert', 'Download new update!');
-	// 	if (info) log.info('update-available info', info);
-	// });
-	// autoUpdater.on('update-not-available', (ev, info) => {
-	// // if (currentWindow) currentWindow.webContents.send('alert', 'Update not available');
-	// 	if (info) log.info('update-not-available info', info);
-	// });
-	// autoUpdater.on('error', (ev, err) => {
-	// 	if (currentWindow) currentWindow.webContents.send('alert', 'Error in auto updater!');
-	// 	if (err) log.info('update-error error', err);
-	// });
-	// autoUpdater.on('update-downloaded', (ev, info) => {
-	// 	if (currentWindow) currentWindow.webContents.send('alert', 'Restarting in 3 seconds for update!');
-	// 	if (info) log.info('update-download info', info);
-	// 	setTimeout(() => {
-	// 		autoUpdater.quitAndInstall();
-	// 	}, 3000);
-	// });
+	autoUpdater.on('checking-for-update', () => {
+	// if (currentWindow) currentWindow.webContents.send('alert', 'Checking for updates');
+	});
+	autoUpdater.on('update-available', (ev, info) => {
+		if (currentWindow) currentWindow.webContents.send('alert', 'Download new update!');
+		if (info) log.info('update-available info', info);
+	});
+	autoUpdater.on('update-not-available', (ev, info) => {
+	// if (currentWindow) currentWindow.webContents.send('alert', 'Update not available');
+		if (info) log.info('update-not-available info', info);
+	});
+	autoUpdater.on('error', (ev, err) => {
+		if (currentWindow) currentWindow.webContents.send('alert', 'Error in auto updater!');
+		if (err) log.info('update-error error', err);
+	});
+	autoUpdater.on('update-downloaded', (ev, info) => {
+		if (currentWindow) currentWindow.webContents.send('alert', 'Restarting in 3 seconds for update!');
+		if (info) log.info('update-download info', info);
+		setTimeout(() => {
+			autoUpdater.quitAndInstall();
+		}, 3000);
+	});
 }
