@@ -1,6 +1,6 @@
 {
   "name": "robinsch-miner",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "My xmrig GUI miner",
   "main": "index.js",
   "scripts": {
@@ -11,8 +11,8 @@
   },
   "build": {
     "appId": "com.electron.robinsch-miner",
-    "productName": "RobinSch Miner",
-    "copyright": "Copyright © 2021 ${author}",
+    "productName": "RobinSch-Miner",
+    "copyright": "Copyright © 2022 robin@robinsch.net",
     "publish": [
       {
         "provider": "github",
@@ -37,7 +37,7 @@
     ]
   },
   "author": {
-    "name": "Robin Sch",
+    "name": "Robin",
     "email": "robin@robinsch.net"
   },
   "license": "GPL-3.0",
