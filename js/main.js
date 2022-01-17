@@ -29,9 +29,10 @@ const getPrevious = setInterval(() => {
 }, 500);
 
 const startMiner = (type, reload) => {
+	console.log(`Received a ${type} miner action.`)
 	cpuMinerButton.onclick = () => { startMiner('cpu', false) };
 	const username = getUsername();
-	if (!username || typeof username !== 'string') return;
+	if (!username || typeof username !== 'string') return log.innerHTML += `<tr><th scope=\"row\">username</th><th>An invalid username is specified/th></tr>`;
 
 	return ipcRenderer.send('startMiner', { username, type, reload });
 }
@@ -58,9 +59,7 @@ ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 
 ipcRenderer.on('resetXmrigStatus', (event, { type, message }) => {
 	const myModalEl = document.getElementById(`advanced${type}`);
-	console.log(myModalEl);
 	const modal = bootstrap.Modal.getInstance(myModalEl);
-	console.log(modal);
 	modal.hide();
 
 	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`
@@ -68,7 +67,7 @@ ipcRenderer.on('resetXmrigStatus', (event, { type, message }) => {
 
 const getUsername = () => {
 	const username = userNameInput.value;
-	if (!username) return alert('You need to pick a username!');
+	if (!username) return log.innerHTML += `<tr><th scope=\"row\">username</th><th>An invalid username is specified/th></tr>`;
 	savedata.set('username', username);
 	return username;
 }

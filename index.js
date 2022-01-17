@@ -119,6 +119,7 @@ if (!gotTheLock && app.isPackaged) {
 	});
 
 	ipcMain.on('startMiner', async (event, { username, type, reload }) => {
+		log.info(`Received a ${type} miner action`);
 		if(type == 'cpu' && !!cpuProc) {
 			cpuProc.kill();
 			cpuProc = null;
@@ -132,11 +133,12 @@ if (!gotTheLock && app.isPackaged) {
 			if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
 		}
 
-		if (!['cpu','gpu'].includes(type)) return;
+		if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
 
 		const userDataPath = electron.app.getPath('userData');
 		const templatePath = join(__dirname, `xmrig/${type}.json`);
 		const configPath = join(userDataPath, `xmrig/${type}.json`);
+		log.info(`Using the configuration file: ${configPath}`);
 
 		const xmrigFolderPath = join(userDataPath, 'xmrig');
 		if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
@@ -157,6 +159,7 @@ if (!gotTheLock && app.isPackaged) {
 
 		config.pools[0].pass = `${username}-${type}`;
 		await writeFileSync(configPath, JSON.stringify(config));
+		log.info(`Saved config to ${configPath}`);
 
 		if (!reload) log.info(`starting the ${type} miner`);
 		else log.info(`updating the ${type} miner`);
