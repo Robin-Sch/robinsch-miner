@@ -1,6 +1,6 @@
 const electron = require('electron');
 const { join } = require('path');
-const log = require('electron-log');
+const electronLog = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('child_process');
 const { writeFileSync, existsSync, mkdirSync, unlinkSync } = require('fs');
@@ -10,12 +10,13 @@ const fetch = require('node-fetch');
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 const { info } = require('electron-log');
 
+const log = electronLog.create('main');
+const cpuLog = electronLog.create('cpu');
+const gpuLog = electronLog.create('gpu');
+
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('starting the app');
-
-const cpuLog = log.scope('cpu');
-const gpuLog = log.scope('gpu');
 
 let currentWindow;
 let cpuProc;

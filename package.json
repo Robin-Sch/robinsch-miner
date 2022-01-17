@@ -1,6 +1,6 @@
 {
   "name": "robinsch-miner",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "description": "My xmrig GUI miner",
   "main": "index.js",
   "scripts": {
