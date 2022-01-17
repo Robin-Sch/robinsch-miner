@@ -3,7 +3,7 @@ const { join } = require('path');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('child_process');
-const { writeFileSync, existsSync, mkdirSync } = require('fs');
+const { writeFileSync, existsSync, mkdirSync, unlinkSync } = require('fs');
 const { cpus } = require('os');
 const fetch = require('node-fetch');
 
@@ -20,6 +20,32 @@ let gpuProc;
 const platform = process.platform;
 const gotTheLock = app.requestSingleInstanceLock();
 const cpuCount = cpus().length;
+
+const MenuTemplate = [
+	{
+		label: 'Debugging',
+		submenu: [
+			{
+				label: 'Toggle Developer Tools',
+				accelerator: (function() {
+					if (process.platform === 'darwin')
+						return 'Alt+Command+I';
+					else
+						return 'Ctrl+Shift+I';
+				})(),
+				click: function(item, focusedWindow) {
+					if (focusedWindow)
+					focusedWindow.toggleDevTools();
+				}
+			}
+		]
+	}
+];
+
+// If mac, add empty object to menu
+if(process.platform == 'darwin') {
+	mainMenuTemplate.unshift({});
+}
 
 if (!gotTheLock && app.isPackaged) {
 	app.quit();
@@ -63,9 +89,6 @@ if (!gotTheLock && app.isPackaged) {
 		}
 	});
 
-	// Menu options bar
-	const MenuTemplate = [];
-
 	ipcMain.on('focus', () => {
 		if (currentWindow.isMinimized()) currentWindow.restore();
 		return currentWindow.focus();
@@ -80,7 +103,22 @@ if (!gotTheLock && app.isPackaged) {
 		return log.info(data);
 	});
 
-	ipcMain.on('startMiner', async (event, { username, type, cpuUse, reload }) => {
+	ipcMain.on('resetXmrig', (event, { type }) => {
+		if (cpuProc || gpuProc) return  currentWindow.webContents.send('resetXmrigStatus', { type, message: 'You can\'t reset the config while mining'});
+
+		const userDataPath = electron.app.getPath('userData');
+
+		const xmrigFolderPath = join(userDataPath, 'xmrig');
+		if (!existsSync(xmrigFolderPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'There is no existing config'});
+
+		const configPath = join(userDataPath, `xmrig/${type}.json`);
+		if (!existsSync(configPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'There is no existing config' });
+
+		unlinkSync(configPath);
+		return currentWindow.webContents.send('resetXmrigStatus', { type, message: `Deleted the config` });
+	});
+
+	ipcMain.on('startMiner', async (event, { username, type, reload }) => {
 		if(type == 'cpu' && !!cpuProc) {
 			cpuProc.kill();
 			cpuProc = null;
@@ -104,18 +142,18 @@ if (!gotTheLock && app.isPackaged) {
 		if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
 
 		const config = existsSync(configPath) ? require(configPath) : require(templatePath);
-		if (type == 'cpu') {
-			config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
+		// if (type == 'cpu' && !isNaN(cpuUse)) {
+		// 	config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
 
-			for(const key in config.cpu) {
-				const value = config.cpu[key];
-				if(typeof value == 'object') {
-					config.cpu[key] = {
-						"threads": cpuUse
-					}
-				}
-			}
-		}
+		// 	for(const key in config.cpu) {
+		// 		const value = config.cpu[key];
+		// 		if(typeof value == 'object') {
+		// 			config.cpu[key] = {
+		// 				"threads": cpuUse
+		// 			}
+		// 		}
+		// 	}
+		// }
 
 		config.pools[0].pass = `${username}-${type}`;
 		await writeFileSync(configPath, JSON.stringify(config));
@@ -150,11 +188,6 @@ if (!gotTheLock && app.isPackaged) {
 
 		return currentWindow.webContents.send('miner-status', { type, status: true, reload });
 	})
-
-	// If mac, add empty object to menu
-	if(process.platform == 'darwin') {
-		mainMenuTemplate.unshift({});
-	}
 
 	// -------------------------------------------------------------------
 	// Auto updates

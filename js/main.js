@@ -9,22 +9,11 @@ const currentData = new SaveData({
 });
 
 let oldUsername = undefined;
-let oldThreads = undefined;
 let mining = { cpu: false, gpu: false };
 
 const userNameInput = document.getElementById('username');
 const cpuMinerButton = document.getElementById('start-miner-cpu');
-const cpuUseSlider = document.getElementById('cpuUse');
-const cpuUseSliderLabel = document.getElementById('cpuUseRangeLabel');
 const log = document.getElementById('log');
-
-cpuUseSlider.onchange = () => {
-	if (mining.cpu) {
-		cpuMinerButton.onclick = () => { startMiner('cpu', true) };
-		cpuMinerButton.className = "btn btn-warning btn-block";
-		cpuMinerButton.innerHTML = `Update the cpu miner`;
-	}
-}
 
 const getPrevious = setInterval(() => {
 	if (!oldUsername) {
@@ -34,14 +23,7 @@ const getPrevious = setInterval(() => {
 		}
 	}
 
-	if (!oldThreads) {
-		oldThreads = savedata.get('threads');
-		if (oldThreads) {
-			setThreads(oldThreads);
-		}
-	}
-
-	if (!!oldUsername && !!oldThreads) {
+	if (!!oldUsername) {
 		return clearInterval(getPrevious);
 	}
 }, 500);
@@ -51,10 +33,7 @@ const startMiner = (type, reload) => {
 	const username = getUsername();
 	if (!username || typeof username !== 'string') return;
 
-	const json = { username, type, reload }
-	if (type == 'cpu') json.cpuUse = cpuUseSlider.value;
-
-	return ipcRenderer.send('startMiner', json);
+	return ipcRenderer.send('startMiner', { username, type, reload });
 }
 
 ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
@@ -77,6 +56,16 @@ ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 	}
 });
 
+ipcRenderer.on('resetXmrigStatus', (event, { type, message }) => {
+	const myModalEl = document.getElementById(`advanced${type}`);
+	console.log(myModalEl);
+	const modal = bootstrap.Modal.getInstance(myModalEl);
+	console.log(modal);
+	modal.hide();
+
+	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`
+})
+
 const getUsername = () => {
 	const username = userNameInput.value;
 	if (!username) return alert('You need to pick a username!');
@@ -84,10 +73,8 @@ const getUsername = () => {
 	return username;
 }
 
-const setThreads = (threads) => {
-	cpuUseSlider.value = threads
-	return cpuUseSliderLabel.innerHTML = `Max amount of threads: ${threads}`;
-}
+const resetXmrig = (type) => {
+	if (mining[type]) return alert('You can not reset the configuration while mining!');
 
-cpuUseSlider.max = window.navigator.hardwareConcurrency;
-setThreads(window.navigator.hardwareConcurrency);
+	return ipcRenderer.send('resetXmrig', { type });
+}

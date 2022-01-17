@@ -3,9 +3,8 @@
 
 <head>
     <title>RobinSch Miner</title>
-    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="../css/main.css" />
-    <script src="../js/bootstrap.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap/bootstrap.min.css">
+    <script src="../js/bootstrap/bootstrap.bundle.min.js"></script>
     <script src="../js/update.js"></script>
 </head>
 
@@ -18,12 +17,12 @@
     <div class="container">
         <div class="row">
             <div class="col-xs-12 col-md-6">
-                <button type="button" class="btn btn-success btn-block" id="start-miner-cpu" onclick="startMiner('cpu', false)">Start the cpu miner</button><br>
-                <input type="range" min="1" id="cpuUse" oninput="document.getElementById('cpuUseRangeLabel').innerHTML = `Amount of threads: ${this.value}`;" step="1">
-                <label id="cpuUseRangeLabel"></label>
+                <button type="button" class="btn btn-success btn-block" id="start-miner-cpu" onclick="startMiner('cpu', false)">Start the cpu miner</button>
+                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advancedcpu">Advanced CPU options</button>
             </div>
             <div class="col-xs-12 col-md-6">
                 <button disabled type="button" class="btn btn-success btn-block" id="start-miner-gpu" onclick="startMiner('gpu', false)">Start the gpu miner (nvidia only)</button>
+                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advancedgpu">Advanced GPU options</button>
             </div>
         </div>
         <div class="row">
@@ -39,6 +38,47 @@
             </table>
         </div>
     </div>
+
+    <div class="modal fade" id="advancedcpu" tabindex="-1" aria-labelledby="advancedcpuLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="advancedcpuLabel">Advanced CPU options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
+                </div>
+                <div class="modal-body">
+                        <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('cpu')">Reset CPU configuration</button>
+                    <hr>
+                    <p>The miner will AUTOMATICALLY pick the most profitable configuration (which may not be using all the cores / threads available). You can't change the amount of threads it will use.</p>
+                </div>
+                <div class="modal-footer">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cancel</button><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="advancedgpu" tabindex="-1" aria-labelledby="advancedgpuLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="advancedgpuLabel">Advanced GPU options</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
+                </div>
+                <div class="modal-body">
+                        <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('gpu')">Reset GPU configuration</button>
+                </div>
+                <div class="modal-footer">
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cancel</button><br>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="../js/main.js"></script>
     <script src="../js/detect-gpu.js"></script>
 </body>
