@@ -14,6 +14,9 @@ autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
 log.info('starting the app');
 
+const cpuLog = log.scope('cpu');
+const gpuLog = log.scope('gpu');
+
 let currentWindow;
 let cpuProc;
 let gpuProc;
