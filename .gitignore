@@ -3,3 +3,4 @@ package-lock.json
 dist
 pkg
 src
+IGNORE.MD

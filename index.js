@@ -119,27 +119,31 @@ if (!gotTheLock && app.isPackaged) {
 	});
 
 	ipcMain.on('startMiner', async (event, { username, type, reload }) => {
-		if(type == 'cpu' && !!cpuProc) {
-			cpuProc.kill();
-			cpuProc = null;
-
-			if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
-		}
-		if(type == 'gpu' && !!gpuProc) {
-			gpuProc.kill();
-			gpuProc = null;
-			
-			if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
-		}
-
-		if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
-
-		const userDataPath = electron.app.getPath('userData');
-		const templatePath = join(__dirname, `xmrig/${type}.json`);
-		const configPath = join(userDataPath, `xmrig/${type}.json`);
-		log.info(`Using the configuration file: ${configPath}`);
-
 		try {
+			if(type == 'cpu' && !!cpuProc) {
+				cpuProc.kill();
+				cpuProc = null;
+
+				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
+			}
+			if(type == 'gpu' && !!gpuProc) {
+				gpuProc.kill();
+				gpuProc = null;
+				
+				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
+			}
+
+			if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
+
+			const resourcesPath = join(app.getAppPath(), app.isPackaged ? '..' : '');
+			const templatePath = join(resourcesPath, `xmrig/${type}.json`);
+
+			const userDataPath = electron.app.getPath('userData');
+			const configPath = join(userDataPath, `xmrig/${type}.json`);
+
+			log.info(`Configuration file: ${configPath}`);
+			log.info(`Template file: ${templatePath}`);
+
 			const xmrigFolderPath = join(userDataPath, 'xmrig');
 			if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
 
@@ -159,39 +163,40 @@ if (!gotTheLock && app.isPackaged) {
 
 			config.pools[0].pass = `${username}-${type}`;
 			await writeFileSync(configPath, JSON.stringify(config));
+
+			log.info(`Username: ${config.pools[0].pass}`);
+
+			if (!reload) log.info(`starting the ${type} miner`);
+			else log.info(`updating the ${type} miner`);
+
+			if (!['win32', 'darwin', 'linux'].includes(process.platform)) return log.error(`Unsupported platform (${process.platform})!`)
+
+			const extra = process.platform == 'win32' ? '.exe' : '';
+			const xmrigPath = join(resourcesPath, `xmrig/${platform}/xmrig${extra}`);
+
+			const currentProc = spawn(xmrigPath, ['-c', configPath]);
+
+			if(type == 'cpu') cpuProc = currentProc;
+			if(type == 'gpu') gpuProc = currentProc;
+
+			currentProc.stdout.on('data', (data) => {
+				return log.info(data.toString())
+			});
+			currentProc.stderr.on('data', (data) => {
+				return log.info(data.toString());
+			});
+			currentProc.on('error', (error) => {
+				return log.error(error);
+			})
+			// currentProc.on('close', (code, signal) => {
+			// 	currentWindow.webContents.send('miner-status', { type, status: false });
+			// 	return log.info(`stopped the ${type} miner`);
+			// });
+
+			return currentWindow.webContents.send('miner-status', { type, status: true, reload });
 		} catch (e) {
 			log.error(`Problem in configuration file: ${e}`);
 		}
-
-		if (!reload) log.info(`starting the ${type} miner`);
-		else log.info(`updating the ${type} miner`);
-
-		if (!['win32', 'darwin', 'linux'].includes(process.platform)) return log.error(`Unsupported platform (${process.platform})!`)
-
-		const extra = process.platform == 'win32' ? '.exe' : '';
-		const xmrigPath = join(app.getAppPath(), app.isPackaged ? '..' : '', `xmrig/${platform}/xmrig${extra}`);
-		log.info(xmrigPath)
-
-		const currentProc = spawn(xmrigPath, ['-c', configPath]);
-
-		if(type == 'cpu') cpuProc = currentProc;
-		if(type == 'gpu') gpuProc = currentProc;
-
-		currentProc.stdout.on('data', (data) => {
-			return log.info(data.toString())
-		});
-		currentProc.stderr.on('data', (data) => {
-			return log.info(data.toString());
-		});
-		currentProc.on('error', (error) => {
-			return log.error(error);
-		})
-		// currentProc.on('close', (code, signal) => {
-		// 	currentWindow.webContents.send('miner-status', { type, status: false });
-		// 	return log.info(`stopped the ${type} miner`);
-		// });
-
-		return currentWindow.webContents.send('miner-status', { type, status: true, reload });
 	})
 
 	// -------------------------------------------------------------------
