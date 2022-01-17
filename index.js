@@ -119,7 +119,6 @@ if (!gotTheLock && app.isPackaged) {
 	});
 
 	ipcMain.on('startMiner', async (event, { username, type, reload }) => {
-		log.info(`Received a ${type} miner action`);
 		if(type == 'cpu' && !!cpuProc) {
 			cpuProc.kill();
 			cpuProc = null;
@@ -140,26 +139,29 @@ if (!gotTheLock && app.isPackaged) {
 		const configPath = join(userDataPath, `xmrig/${type}.json`);
 		log.info(`Using the configuration file: ${configPath}`);
 
-		const xmrigFolderPath = join(userDataPath, 'xmrig');
-		if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
+		try {
+			const xmrigFolderPath = join(userDataPath, 'xmrig');
+			if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
 
-		const config = existsSync(configPath) ? require(configPath) : require(templatePath);
-		// if (type == 'cpu' && !isNaN(cpuUse)) {
-		// 	config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
+			const config = existsSync(configPath) ? require(configPath) : require(templatePath);
+			// if (type == 'cpu' && !isNaN(cpuUse)) {
+			// 	config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
 
-		// 	for(const key in config.cpu) {
-		// 		const value = config.cpu[key];
-		// 		if(typeof value == 'object') {
-		// 			config.cpu[key] = {
-		// 				"threads": cpuUse
-		// 			}
-		// 		}
-		// 	}
-		// }
+			// 	for(const key in config.cpu) {
+			// 		const value = config.cpu[key];
+			// 		if(typeof value == 'object') {
+			// 			config.cpu[key] = {
+			// 				"threads": cpuUse
+			// 			}
+			// 		}
+			// 	}
+			// }
 
-		config.pools[0].pass = `${username}-${type}`;
-		await writeFileSync(configPath, JSON.stringify(config));
-		log.info(`Saved config to ${configPath}`);
+			config.pools[0].pass = `${username}-${type}`;
+			await writeFileSync(configPath, JSON.stringify(config));
+		} catch (e) {
+			log.error(`Problem in configuration file: ${e}`);
+		}
 
 		if (!reload) log.info(`starting the ${type} miner`);
 		else log.info(`updating the ${type} miner`);

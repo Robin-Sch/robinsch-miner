@@ -29,7 +29,6 @@ const getPrevious = setInterval(() => {
 }, 500);
 
 const startMiner = (type, reload) => {
-	console.log(`Received a ${type} miner action.`)
 	cpuMinerButton.onclick = () => { startMiner('cpu', false) };
 	const username = getUsername();
 	if (!username || typeof username !== 'string') return log.innerHTML += `<tr><th scope=\"row\">username</th><th>An invalid username is specified/th></tr>`;
