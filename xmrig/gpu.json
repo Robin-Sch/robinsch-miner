@@ -26,7 +26,16 @@
         "scratchpad_prefetch_mode": 1
     },
     "cpu": false,
-    "opencl": false,
+    "opencl": {
+        "enabled": true,
+        "cache": true,
+        "loader": null,
+        "platform": "AMD",
+        "adl": true,
+        "cn/0": false,
+        "cn-lite/0": false,
+        "panthera": false
+    },
     "cuda": {
         "enabled": true,
         "loader": null,
