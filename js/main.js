@@ -62,7 +62,11 @@ ipcRenderer.on('resetXmrigStatus', (event, { type, message }) => {
 	modal.hide();
 
 	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`
-})
+});
+
+ipcRenderer.on('pool-status', (event, { online }) => {
+	if (!online) return log.innerHTML += `<tr><th scope=\"row\">pool</th><th>Can't connect to the pool, please try again later</th></tr>`;
+});
 
 const getUsername = () => {
 	const username = userNameInput.value;

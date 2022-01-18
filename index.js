@@ -8,7 +8,6 @@ const { cpus } = require('os');
 const fetch = require('node-fetch');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
-const { info } = require('electron-log');
 
 autoUpdater.logger = log;
 autoUpdater.logger.transports.file.level = 'info';
@@ -22,6 +21,20 @@ const gotTheLock = app.requestSingleInstanceLock();
 const cpuCount = cpus().length;
 
 const MenuTemplate = [
+	{
+		label: 'Updates',
+		submenu: [
+			{
+				label: `Version: ${app.getVersion()}`
+			},
+			{
+				label: 'Check for updates',
+				click: function(item, focusedWindow) {
+					autoUpdater.checkForUpdates();
+				}
+			}
+		]
+	},
 	{
 		label: 'Debugging',
 		submenu: [
@@ -83,9 +96,9 @@ if (!gotTheLock && app.isPackaged) {
 
 		if(app.isPackaged) {
 			log.info('starting update check');
-			return autoUpdater.checkForUpdates();
+			autoUpdater.checkForUpdates();
 		} else {
-			return currentWindow.webContents.openDevTools();
+			currentWindow.webContents.openDevTools();
 		}
 	});
 
@@ -132,6 +145,10 @@ if (!gotTheLock && app.isPackaged) {
 				
 				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
 			}
+
+			const res = await checkPool();
+			console.log(res, 'res');
+			if(!res) return;
 
 			if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
 
@@ -227,4 +244,22 @@ if (!gotTheLock && app.isPackaged) {
 			autoUpdater.quitAndInstall();
 		}, 3000);
 	});
+}
+
+const checkPool = async () => {
+	try {
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+		const res = await fetch('https://gulf.moneroocean.stream');
+		process.env.NODE_TLS_REJECT_UNAUTHORIZED = undefined;
+		const text = await res.text();
+		if (text !== 'Mining Pool Online') {
+			currentWindow.webContents.send('pool-status', { online: false });
+			return false;
+		} else {
+			return true;
+		}
+	} catch (e) {
+		currentWindow.webContents.send('pool-status', { online: false });
+		return false;
+	}
 }
