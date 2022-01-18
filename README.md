@@ -14,6 +14,8 @@ Download from [github releases](https://github.com/Robin-Sch/robinsch-miner/rele
 
 The fees are set to 0%, but if you want to donate to me feel free to mine on my wallet.
 
+You can donate monero to `89DntRp9S5qAvNhUqY1rWwXy3jWHKDGKLgexsGu9mRrYZ7MvA6pkBEGbfji8TFPMUsfUNaz89TmiyUZZua5S6qszUFNnFHq`
+
 ## For GPU (nvidia)
 
 Follow [these](https://github.com/MoneroOcean/xmrig-cuda) instructions.
