@@ -3,7 +3,7 @@ const { join } = require('path');
 const log = require('electron-log');
 const { autoUpdater } = require('electron-updater');
 const { spawn } = require('child_process');
-const { writeFileSync, existsSync, mkdirSync, unlinkSync } = require('fs');
+const { writeFileSync, existsSync, mkdirSync, unlinkSync, lstatSync } = require('fs');
 const { cpus } = require('os');
 const fetch = require('node-fetch');
 
@@ -131,7 +131,7 @@ if (!gotTheLock && app.isPackaged) {
 		return currentWindow.webContents.send('resetXmrigStatus', { type, message: `Deleted the config` });
 	});
 
-	ipcMain.on('startMiner', async (event, { username, type, reload }) => {
+	ipcMain.on('startMiner', async (event, { username, type, reload, command }) => {
 		try {
 			if(type == 'cpu' && !!cpuProc) {
 				cpuProc.kill();
@@ -146,55 +146,77 @@ if (!gotTheLock && app.isPackaged) {
 				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
 			}
 
-			const res = await checkPool();
-			console.log(res, 'res');
-			if(!res) return;
+			if(!(await checkPool())) return;
 
 			if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
 
 			const resourcesPath = join(app.getAppPath(), app.isPackaged ? '..' : '');
-			const templatePath = join(resourcesPath, `xmrig/${type}.json`);
-
 			const userDataPath = electron.app.getPath('userData');
-			const configPath = join(userDataPath, `xmrig/${type}.json`);
+
+			log.info(`resourcesPath: ${resourcesPath}`);
+			log.info(`userDataPath: ${userDataPath}`);
 
 			const curLog = log;
 			log.transports.file.resolvePath = () => join(userDataPath, `logs/${type}.log`);
 
-			curLog.info(`Configuration file: ${configPath}`);
-			curLog.info(`Template file: ${templatePath}`);
-
-			const xmrigFolderPath = join(userDataPath, 'xmrig');
-			if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
-
-			const config = existsSync(configPath) ? require(configPath) : require(templatePath);
-			// if (type == 'cpu' && !isNaN(cpuUse)) {
-			// 	config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
-
-			// 	for(const key in config.cpu) {
-			// 		const value = config.cpu[key];
-			// 		if(typeof value == 'object') {
-			// 			config.cpu[key] = {
-			// 				"threads": cpuUse
-			// 			}
-			// 		}
-			// 	}
-			// }
-
-			config.pools[0].pass = `${username}-${type}`;
-			await writeFileSync(configPath, JSON.stringify(config));
-
-			curLog.info(`Username: ${config.pools[0].pass}`);
+			const minerUsername = `${username}-${type}`;
+			curLog.info(`Mining username: ${minerUsername}`);
 
 			if (!reload) curLog.info(`starting the ${type} miner`);
 			else curLog.info(`updating the ${type} miner`);
 
-			if (!['win32', 'darwin', 'linux'].includes(process.platform)) return log.error(`Unsupported platform (${process.platform})!`)
+			if (!!command) {
+				command = command.split(' ');
+				let filename = command[0];
 
-			const extra = process.platform == 'win32' ? '.exe' : '';
-			const xmrigPath = join(resourcesPath, `xmrig/${platform}/xmrig${extra}`);
+				if (!existsSync(filename) || !lstatSync(filename).isFile()) {
+					const resourcesPathFile = join(resourcesPath, filename);
+					const userDataPathFile = join(userDataPath, filename);
 
-			const currentProc = spawn(xmrigPath, ['-c', configPath]);
+					if (existsSync(resourcesPathFile) && lstatSync(resourcesPathFile).isFile()) filename = resourcesPathFile;
+					else if (existsSync(userDataPathFile) && lstatSync(userDataPathFile).isFile()) filename = userDataPathFile;
+					else {
+						return currentWindow.webContents.send('log', { type, message: `An invalid file is specified (uncheck the box in ${type} advanced options)` })
+					}
+				}
+
+				command[0] = filename;
+			} else {
+				if (!['win32', 'darwin', 'linux'].includes(process.platform)) return curLog.error(`Unsupported platform (${process.platform})!`);
+
+				const templatePath = join(resourcesPath, `xmrig/${type}.json`);
+				const configPath = join(userDataPath, `xmrig/${type}.json`);
+
+				log.info(`templatePath: ${templatePath}`);
+				log.info(`configPath: ${configPath}`);
+
+				const xmrigFolderPath = join(userDataPath, 'xmrig');
+				if (!existsSync(xmrigFolderPath)) mkdirSync(xmrigFolderPath);
+
+				const config = existsSync(configPath) ? require(configPath) : require(templatePath);
+				// if (type == 'cpu' && !isNaN(cpuUse)) {
+				// 	config.cpu['max-threads-hint'] = Math.round((cpuUse / cpuCount) * 100);
+
+				// 	for(const key in config.cpu) {
+				// 		const value = config.cpu[key];
+				// 		if(typeof value == 'object') {
+				// 			config.cpu[key] = {
+				// 				"threads": cpuUse
+				// 			}
+				// 		}
+				// 	}
+				// }
+
+				config.pools[0].pass = minerUsername;
+				await writeFileSync(configPath, JSON.stringify(config));
+
+				const extra = process.platform == 'win32' ? '.exe' : '';
+				const xmrigPath = join(resourcesPath, `xmrig/${platform}/xmrig${extra}`);
+
+				command = [xmrigPath, '-c', configPath];
+			}
+
+			const currentProc = spawn(command[0], command.slice(1));
 
 			if(type == 'cpu') cpuProc = currentProc;
 			if(type == 'gpu') gpuProc = currentProc;

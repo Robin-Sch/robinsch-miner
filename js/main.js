@@ -9,6 +9,10 @@ const currentData = new SaveData({
 });
 
 let oldUsername = undefined;
+let oldCpuCommand = undefined;
+let oldCpuCommandChecked = undefined;
+let oldGpuCommand = undefined;
+let oldGpuCommandChecked = undefined;
 let mining = { cpu: false, gpu: false };
 
 const userNameInput = document.getElementById('username');
@@ -23,7 +27,40 @@ const getPrevious = setInterval(() => {
 		}
 	}
 
-	if (!!oldUsername) {
+	if (!oldCpuCommand) {
+		oldCpuCommand = savedata.get('cpu-command');
+		if (oldCpuCommand) {
+			command = oldCpuCommand.split(' ');
+			document.getElementById('custom-command-cpu-file').value = command[0];
+			document.getElementById('custom-command-cpu-flags').value = command.slice(1).join(' ');
+		}
+	}
+
+	if (!oldCpuCommandChecked) {
+		oldCpuCommandChecked = savedata.get('cpu-command-checked');
+		if (oldCpuCommandChecked) {
+			document.getElementById('custom-command-cpu-enabled').checked = true;
+		}
+	}
+
+	if (!oldGpuCommand) {
+		oldGpuCommand = savedata.get('gpu-command');
+		if (oldGpuCommand) {
+			command = oldGpuCommand.split(' ');
+			document.getElementById('custom-command-gpu-file').value = command[0];
+			document.getElementById('custom-command-gpu-flags').value = command.slice(1).join(' ');
+		}
+	}
+
+	if (!oldGpuCommandChecked) {
+		oldGpuCommandChecked = savedata.get('gpu-command-checked');
+		if (oldGpuCommandChecked) {
+			document.getElementById('custom-command-gpu-enabled').checked = true;
+		}
+	}
+	
+
+	if (!!oldUsername && !!oldCpuCommand && !!oldGpuCommand) {
 		return clearInterval(getPrevious);
 	}
 }, 500);
@@ -31,9 +68,19 @@ const getPrevious = setInterval(() => {
 const startMiner = (type, reload) => {
 	cpuMinerButton.onclick = () => { startMiner('cpu', false) };
 	const username = getUsername();
-	if (!username || typeof username !== 'string') return log.innerHTML += `<tr><th scope=\"row\">username</th><th>An invalid username is specified/th></tr>`;
+	if (!username || typeof username !== 'string') return logFunction('username', 'An invalid username is specified');
 
-	return ipcRenderer.send('startMiner', { username, type, reload });
+	let command = false;
+
+	const enabled = document.getElementById(`custom-command-${type}-enabled`).checked;
+	if (enabled) {
+		command = document.getElementById(`custom-command-${type}-file`).value + " " + document.getElementById(`custom-command-${type}-flags`).value;
+		if (!command) return logFunction(type, `An invalid command is specified (uncheck the box in ${type} advanced options)`);
+		savedata.set(`${type}-command`, command);
+		savedata.set(`${type}-command-checked`, true);
+	}
+
+	return ipcRenderer.send('startMiner', { username, type, reload, command });
 }
 
 ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
@@ -45,14 +92,14 @@ ipcRenderer.on('miner-status', (event, { type, status, reload }) => {
 		button.className = "btn btn-danger btn-block"
 		button.innerHTML = `Stop the ${type} miner`;
 		if(reload) {
-			return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Updated the miner</th></tr>`;
+			return logFunction(type, 'Updated the miner');
 		} else {
-			return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Started the miner</th></tr>`
+			return logFunction(type, 'Started the miner');
 		}
 	} else {
 		button.className = "btn btn-success btn-block"
 		button.innerHTML = `Start the ${type} miner`;
-		return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>Stopped the miner</th></tr>`
+		return logFunction(type, 'Stopped the miner');
 	}
 });
 
@@ -61,16 +108,20 @@ ipcRenderer.on('resetXmrigStatus', (event, { type, message }) => {
 	const modal = bootstrap.Modal.getInstance(myModalEl);
 	modal.hide();
 
-	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`
+	return logFunction(type, message);
 });
 
 ipcRenderer.on('pool-status', (event, { online }) => {
-	if (!online) return log.innerHTML += `<tr><th scope=\"row\">pool</th><th>Can't connect to the pool, please try again later</th></tr>`;
+	if (!online) return logFunction('pool', 'Can\'t connect to the pool, please try again later');
+});
+
+ipcRenderer.on('log', (event, { type, message }) => {
+	return logFunction(type, message);
 });
 
 const getUsername = () => {
 	const username = userNameInput.value;
-	if (!username) return log.innerHTML += `<tr><th scope=\"row\">username</th><th>An invalid username is specified/th></tr>`;
+	if (!username) return logFunction('username', 'An invalid username is specified');
 	savedata.set('username', username);
 	return username;
 }
@@ -79,4 +130,8 @@ const resetXmrig = (type) => {
 	if (mining[type]) return alert('You can not reset the configuration while mining!');
 
 	return ipcRenderer.send('resetXmrig', { type });
+}
+
+const logFunction = (type, message) => {
+	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`;
 }

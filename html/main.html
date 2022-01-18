@@ -47,13 +47,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                 </div>
                 <div class="modal-body">
-                        <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('cpu')">Reset CPU configuration</button>
+                    <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('cpu')">Reset CPU configuration</button>
+                    <hr>
+                    <p>DON'T CHANGE this unless you know what you're doing (which you DON'T). To save, start the miner at least once.</p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input id="custom-command-cpu-enabled" type="checkbox" aria-label="Enabled">
+                            </div>
+                        </div>
+                        <input id="custom-command-cpu-file" type="text" class="form-control" placeholder="filename" aria-label="filename" aria-describedby="basic-addon1">
+                        <input id="custom-command-cpu-flags" type="text" class="form-control" placeholder="flags" aria-label="flags" aria-describedby="basic-addon1">
+                    </div>
                     <hr>
                     <p>The miner will AUTOMATICALLY pick the most profitable configuration (which may not be using all the cores / threads available). You can't change the amount of threads it will use.</p>
                 </div>
                 <div class="modal-footer">
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cancel</button><br>
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button><br>
                     </div>
                 </div>
             </div>
@@ -68,11 +79,24 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                 </div>
                 <div class="modal-body">
-                        <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('gpu')">Reset GPU configuration</button>
+                    <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('gpu')">Reset GPU configuration</button>
+                    <hr>
+                    <p>DON'T CHANGE this unless you know what you're doing (which you DON'T). To save, start the miner at least once.</p>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input id="custom-command-gpu-enabled" type="checkbox" aria-label="Enabled">
+                            </div>
+                        </div>
+                        <input id="custom-command-gpu-file" type="text" class="form-control" placeholder="filename" aria-label="filename" aria-describedby="basic-addon1">
+                        <input id="custom-command-gpu-flags" type="text" class="form-control" placeholder="flags" aria-label="flags" aria-describedby="basic-addon1">
+                    </div>
+                    <hr>
+                    <p>Task manager might not show 100% GPU usage. This is a bug off task manager and not the miner.</p>
                 </div>
                 <div class="modal-footer">
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Cancel</button><br>
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">Close</button><br>
                     </div>
                 </div>
             </div>
