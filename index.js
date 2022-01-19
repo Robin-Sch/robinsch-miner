@@ -122,13 +122,13 @@ if (!gotTheLock && app.isPackaged) {
 		const userDataPath = electron.app.getPath('userData');
 
 		const xmrigFolderPath = join(userDataPath, 'xmrig');
-		if (!existsSync(xmrigFolderPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'There is no existing config'});
+		if (!existsSync(xmrigFolderPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'Reset the config'});
 
 		const configPath = join(userDataPath, `xmrig/${type}.json`);
-		if (!existsSync(configPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'There is no existing config' });
+		if (!existsSync(configPath)) return currentWindow.webContents.send('resetXmrigStatus', { type, message: 'Reset the config' });
 
 		unlinkSync(configPath);
-		return currentWindow.webContents.send('resetXmrigStatus', { type, message: `Deleted the config` });
+		return currentWindow.webContents.send('resetXmrigStatus', { type, message: `Reset the config` });
 	});
 
 	ipcMain.on('startMiner', async (event, { username, type, reload, command }) => {

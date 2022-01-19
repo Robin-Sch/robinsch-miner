@@ -18,11 +18,11 @@
         <div class="row">
             <div class="col-xs-12 col-md-6">
                 <button type="button" class="btn btn-success btn-block" id="start-miner-cpu" onclick="startMiner('cpu', false)">Start the cpu miner</button>
-                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advancedcpu">Advanced CPU options</button>
+                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advanced-cpu">Advanced CPU options</button>
             </div>
             <div class="col-xs-12 col-md-6">
                 <button disabled type="button" class="btn btn-success btn-block" id="start-miner-gpu" onclick="startMiner('gpu', false)">Start the gpu miner</button>
-                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advancedgpu">Advanced GPU options</button>
+                <button type="button" class="btn btn-secondary btn-block" data-bs-toggle="modal" data-bs-target="#advanced-gpu">Advanced GPU options</button>
             </div>
         </div>
         <div class="row">
@@ -47,15 +47,16 @@
         </div>
     </div>
 
-    <div class="modal fade" id="advancedcpu" tabindex="-1" aria-labelledby="advancedcpuLabel" aria-hidden="true">
+    <div class="modal fade" id="advanced-cpu" tabindex="-1" aria-labelledby="advanced-cpuLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="advancedcpuLabel">Advanced CPU options</h5>
+                    <h5 class="modal-title" id="advanced-cpuLabel">Advanced CPU options</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                 </div>
                 <div class="modal-body">
-                    <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('cpu')">Reset CPU configuration</button>
+                    <button class="btn btn-danger btn-block" type="button" onclick="resetConfig('cpu')">Reset CPU configuration</button>
+                    <button id="show-cpu-logs" class="btn btn-danger btn-block" type="button" onclick="showLog('cpu', false)">Hide CPU logs</button>
                     <hr>
                     <p>DON'T CHANGE this unless you know what you're doing (which you DON'T). To save, start the miner at least once.</p>
                     <div class="input-group mb-3">
@@ -79,15 +80,16 @@
         </div>
     </div>
 
-    <div class="modal fade" id="advancedgpu" tabindex="-1" aria-labelledby="advancedgpuLabel" aria-hidden="true">
+    <div class="modal fade" id="advanced-gpu" tabindex="-1" aria-labelledby="advanced-gpuLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="advancedgpuLabel">Advanced GPU options</h5>
+                    <h5 class="modal-title" id="advanced-gpuLabel">Advanced GPU options</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">x</button>
                 </div>
                 <div class="modal-body">
-                    <button class="btn btn-danger btn-block" type="button" onclick="resetXmrig('gpu')">Reset GPU configuration</button>
+                    <button class="btn btn-danger btn-block" type="button" onclick="resetConfig('gpu')">Reset GPU configuration</button>
+                    <button id="show-gpu-logs" class="btn btn-danger btn-block" type="button" onclick="showLog('gpu', false)">Hide GPU logs</button>
                     <hr>
                     <p>DON'T CHANGE this unless you know what you're doing (which you DON'T). To save, start the miner at least once.</p>
                     <div class="input-group mb-3">
