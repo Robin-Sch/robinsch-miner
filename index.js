@@ -5,7 +5,7 @@ const { autoUpdater } = require('electron-updater');
 const { spawn } = require('child_process');
 const { writeFileSync, existsSync, mkdirSync, unlinkSync, lstatSync } = require('fs');
 const { cpus } = require('os');
-const fetch = require('node-fetch');
+const { get } = require('https');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
@@ -146,8 +146,7 @@ if (!gotTheLock && app.isPackaged) {
 				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
 			}
 
-			if(!(await checkPool())) return;
-
+			if(!(await checkPool())) return log.info('Mining pool is down');
 			if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
 
 			const resourcesPath = join(app.getAppPath(), app.isPackaged ? '..' : '');
@@ -207,6 +206,8 @@ if (!gotTheLock && app.isPackaged) {
 				// 	}
 				// }
 
+				config.colors = false;
+				config.title = false;
 				config.pools[0].pass = minerUsername;
 				await writeFileSync(configPath, JSON.stringify(config));
 
@@ -222,12 +223,15 @@ if (!gotTheLock && app.isPackaged) {
 			if(type == 'gpu') gpuProc = currentProc;
 
 			currentProc.stdout.on('data', (data) => {
+				currentWindow.webContents.send('miner-log', { data: data.toString(), type });
 				return curLog.info(data.toString())
 			});
 			currentProc.stderr.on('data', (data) => {
 				return curLog.info(data.toString());
+				currentWindow.webContents.send('miner-log', { data: data.toString(), type });
 			});
 			currentProc.on('error', (error) => {
+				currentWindow.webContents.send('miner-log', { data: data.toString(), type });
 				return curLog.error(error);
 			})
 			// currentProc.on('close', (code, signal) => {
@@ -269,19 +273,12 @@ if (!gotTheLock && app.isPackaged) {
 }
 
 const checkPool = async () => {
-	try {
-		process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-		const res = await fetch('https://gulf.moneroocean.stream');
-		process.env.NODE_TLS_REJECT_UNAUTHORIZED = undefined;
-		const text = await res.text();
-		if (text !== 'Mining Pool Online') {
+	return new Promise((resolve) => {
+		get('https://gulf.moneroocean.stream/', { rejectUnauthorized: false }, () => {
+			return resolve(true);
+		}).on('error', () => {
 			currentWindow.webContents.send('pool-status', { online: false });
-			return false;
-		} else {
-			return true;
-		}
-	} catch (e) {
-		currentWindow.webContents.send('pool-status', { online: false });
-		return false;
-	}
+			return resolve(false);
+		});
+	})
 }

@@ -59,7 +59,6 @@ const getPrevious = setInterval(() => {
 		}
 	}
 	
-
 	if (!!oldUsername && !!oldCpuCommand && !!oldGpuCommand) {
 		return clearInterval(getPrevious);
 	}
@@ -76,9 +75,10 @@ const startMiner = (type, reload) => {
 	if (enabled) {
 		command = document.getElementById(`custom-command-${type}-file`).value + " " + document.getElementById(`custom-command-${type}-flags`).value;
 		if (!command) return logFunction(type, `An invalid command is specified (uncheck the box in ${type} advanced options)`);
-		savedata.set(`${type}-command`, command);
-		savedata.set(`${type}-command-checked`, true);
 	}
+
+	savedata.set(`${type}-command`, command);
+	savedata.set(`${type}-command-checked`, enabled);
 
 	return ipcRenderer.send('startMiner', { username, type, reload, command });
 }
@@ -119,6 +119,11 @@ ipcRenderer.on('log', (event, { type, message }) => {
 	return logFunction(type, message);
 });
 
+ipcRenderer.on('miner-log', (event, { data, type }) => {
+	const el = document.getElementById(`${type}-log`);
+	return el.innerHTML = data + '\n' + el.innerHTML;
+});
+
 const getUsername = () => {
 	const username = userNameInput.value;
 	if (!username) return logFunction('username', 'An invalid username is specified');
@@ -133,5 +138,5 @@ const resetXmrig = (type) => {
 }
 
 const logFunction = (type, message) => {
-	return log.innerHTML += `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>`;
+	return log.innerHTML = `<tr><th scope=\"row\">${type}</th><th>${message}</th></tr>` + log.innerHTML;
 }
