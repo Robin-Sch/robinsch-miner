@@ -18,14 +18,29 @@
         "init": -1,
         "init-avx2": 0,
         "mode": "auto",
-        "1gb-pages": true,
+        "1gb-pages": false,
         "rdmsr": true,
         "wrmsr": true,
         "cache_qos": false,
         "numa": true,
         "scratchpad_prefetch_mode": 1
     },
-    "cpu": false,
+    "cpu": {
+        "enabled": false,
+        "huge-pages": true,
+        "huge-pages-jit": false,
+        "hw-aes": null,
+        "priority": null,
+        "memory-pool": true,
+        "yield": true,
+        "max-threads-hint": 100,
+        "asm": true,
+        "argon2-impl": null,
+        "astrobwt-max-size": 550,
+        "astrobwt-avx2": false,
+        "cn/0": false,
+        "cn-lite/0": false
+    },
     "opencl": {
         "enabled": true,
         "cache": true,
@@ -45,9 +60,9 @@
         "panthera": false,
         "astrobwt": false
     },
-    "log-file": null,
     "donate-level": 0,
     "donate-over-proxy": 0,
+    "log-file": null,
     "pools": [
         {
             "algo": null,
@@ -57,7 +72,7 @@
             "pass": "",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
             "tls": true,
             "tls-fingerprint": null,
@@ -67,11 +82,11 @@
             "submit-to-origin": false
         }
     ],
-    "retries": 5,
-    "retry-pause": 5,
     "print-time": 60,
     "health-print-time": 60,
     "dmi": true,
+    "retries": 5,
+    "retry-pause": 5,
     "syslog": false,
     "tls": {
         "enabled": false,
@@ -82,17 +97,11 @@
         "ciphersuites": null,
         "dhparam": null
     },
-    "dns": {
-        "ipv6": false,
-        "ttl": 30
-    },
     "user-agent": null,
     "verbose": 0,
     "watch": true,
     "rebench-algo": false,
     "bench-algo-time": 20,
-    "algo-min-time": 0,
-    "algo-perf": {},
     "pause-on-battery": false,
     "pause-on-active": false
 }

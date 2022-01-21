@@ -1,6 +1,6 @@
 {
   "name": "robinsch-miner",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "My GUI crypto miner",
   "main": "index.js",
   "scripts": {

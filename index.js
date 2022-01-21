@@ -134,19 +134,22 @@ if (!gotTheLock && app.isPackaged) {
 	ipcMain.on('startMiner', async (event, { username, type, reload, command }) => {
 		try {
 			if(type == 'cpu' && !!cpuProc) {
+				cpuProc.removeAllListeners('close');
 				cpuProc.kill();
 				cpuProc = null;
 
 				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
-			}
-			if(type == 'gpu' && !!gpuProc) {
+			} else if(type == 'gpu' && !!gpuProc) {
+				cpuProc.removeAllListeners('close');
 				gpuProc.kill();
 				gpuProc = null;
 				
 				if (!reload) return currentWindow.webContents.send('miner-status', { type, status: false });
 			}
 
-			if(!(await checkPool())) return log.info('Mining pool is down');
+			const poolStatus = await checkPool()
+
+			if(!poolStatus.status) return log.info('Mining pool is down', poolStatus.error);
 			if (!['cpu','gpu'].includes(type)) return log.info(`No CPU or GPU as mining type! ${type}`);
 
 			const resourcesPath = join(app.getAppPath(), app.isPackaged ? '..' : '');
@@ -209,6 +212,9 @@ if (!gotTheLock && app.isPackaged) {
 				config.colors = false;
 				config.title = false;
 				config.pools[0].pass = minerUsername;
+
+				if (process.platform == 'linux') config.randomx['1gb-pages'] = true;
+
 				await writeFileSync(configPath, JSON.stringify(config));
 
 				const extra = process.platform == 'win32' ? '.exe' : '';
@@ -227,17 +233,27 @@ if (!gotTheLock && app.isPackaged) {
 				return curLog.info(data.toString())
 			});
 			currentProc.stderr.on('data', (data) => {
-				return curLog.info(data.toString());
 				currentWindow.webContents.send('miner-log', { data: data.toString(), type });
+				return curLog.info(data.toString());
 			});
 			currentProc.on('error', (error) => {
-				currentWindow.webContents.send('miner-log', { data: data.toString(), type });
-				return curLog.error(error);
+				if(type == 'cpu') {
+					currentProc.kill();
+				} else if(type == 'gpu') {
+					currentProc.kill();
+				}
+				return curLog.error(error.toString());
 			})
-			// currentProc.on('close', (code, signal) => {
-			// 	currentWindow.webContents.send('miner-status', { type, status: false });
-			// 	return curLog.info(`stopped the ${type} miner`);
-			// });
+			currentProc.on('close', (code, signal) => {
+				if (type == 'cpu') {
+					cpuProc = null;
+				} else if (type == 'gpu') {
+					gpuProc = null;
+				}
+
+				currentWindow.webContents.send('miner-status', { type, status: false });
+				return curLog.info(`stopped the ${type} miner`);
+			});
 
 			return currentWindow.webContents.send('miner-status', { type, status: true, reload });
 		} catch (e) {
@@ -275,10 +291,10 @@ if (!gotTheLock && app.isPackaged) {
 const checkPool = async () => {
 	return new Promise((resolve) => {
 		get('https://gulf.moneroocean.stream/', { rejectUnauthorized: false }, () => {
-			return resolve(true);
-		}).on('error', () => {
+			return resolve({ status: true });
+		}).on('error', (e) => {
 			currentWindow.webContents.send('pool-status', { online: false });
-			return resolve(false);
+			return resolve({ status: false, error: e});
 		});
 	})
 }

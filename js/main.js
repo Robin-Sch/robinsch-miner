@@ -144,7 +144,7 @@ const loadSaved = () => {
 	if (oldGpuCommandChecked !== null) document.getElementById('custom-command-gpu-enabled').checked = true;
 
 	const oldGpuShowLog = savedata.get('show-gpu-log');
-	if (oldCpuShowLog !== null) showLog('gpu', oldCpuShowLog);
+	if (oldGpuShowLog !== null) showLog('gpu', oldGpuShowLog);
 
 	return logFunction('config', 'Configuration loaded');
 }
